@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "ממלא טפסים חכם",
+  "version": "2.5.0",
+  "description": "שמירת תבניות (דלתא) ומילוי חכם לטפסי PDF בתוך SMS Agents.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "ממלא טפסים חכם"
+  },
+  "permissions": ["storage", "scripting", "activeTab", "tabs"],
+  "host_permissions": ["*://agents.sms2010.co.il/*"],
+  "content_scripts": [
+    {
+      "matches": ["*://agents.sms2010.co.il/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": true,
+      "match_about_blank": true
+    }
+  ]
+}

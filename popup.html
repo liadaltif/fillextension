@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>PDF Presetter</title>
+  <style>
+    :root {
+      --bg: #0f172a;          /* slate-900 */
+      --panel: #111827;       /* gray-900 */
+      --muted: #94a3b8;       /* slate-400 */
+      --text: #e5e7eb;        /* gray-200 */
+      --accent: #2563eb;      /* blue-600 */
+      --accent-2: #1d4ed8;    /* blue-700 */
+      --accent-3: #60a5fa;    /* blue-300 */
+      --btn: #1f2937;         /* gray-800 */
+      --btn-hover: #374151;   /* gray-700 */
+      --border: #1f2937;      /* gray-800 */
+      --danger: #ef4444;      /* red-500 */
+      --success: #22c55e;     /* green-500 */
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", "Rubik", "Heebo", system-ui, -apple-system, Roboto, Arial;
+      background: linear-gradient(180deg, #0b1222, #0f172a);
+      color: var(--text);
+      width: 380px;
+      padding: 12px;
+      direction: rtl;
+      text-align: right;
+    }
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+    .title {
+      font-size: 16px; font-weight: 700; letter-spacing: 0.2px;
+      white-space: nowrap;        /* DON’T wrap */
+      overflow: hidden;           /* allow ellipsis */
+      text-overflow: ellipsis;    /* show … if too long */
+      flex: 1 1 auto;             /* take remaining space */
+      min-width: 0;               /* required for flex + ellipsis */
+    }
+    .status {
+      display: flex; align-items: center; gap: 6px;
+      color: var(--muted); font-size: 12px;
+      flex: 0 0 auto; 
+    }
+    .badge {
+      font-size: 16px; line-height: 1;
+    }
+
+    .card {
+      background: radial-gradient(120% 120% at 0% 0%, rgba(37,99,235,0.08), transparent),
+                  var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    }
+    .card h2 {
+      font-size: 13px; margin: 0 0 8px; color: var(--accent-3); font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 6px; }
+    input[type="text"], select {
+      width: 100%; padding: 10px 10px;
+      border-radius: 10px; border: 1px solid var(--border);
+      background: #0b1020; color: var(--text);
+      outline: none;
+      transition: border .15s ease, box-shadow .15s ease;
+    }
+    input[type="text"]:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.25);
+    }
+
+    .row { display: grid; gap: 8px; margin-bottom: 8px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+    .btn {
+      padding: 10px 12px; border: 1px solid var(--border);
+      border-radius: 10px; background: var(--btn); color: var(--text);
+      font-weight: 600; letter-spacing: 0.2px; cursor: pointer;
+      transition: transform .06s ease, background .15s ease, border-color .15s ease, opacity .15s ease;
+    }
+    .btn:hover { background: var(--btn-hover); }
+    .btn:active { transform: translateY(1px); }
+    .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary {
+      background: linear-gradient(180deg, var(--accent), var(--accent-2));
+      border-color: #0b4bd6;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(180deg, #2a6ff0, #2250c7);
+    }
+    .btn-danger {
+      background: linear-gradient(180deg, #ef4444, #b91c1c);
+      border-color: #7f1d1d;
+    }
+    .btn:hover:not(.btn-danger):not(.btn-primary) {
+      background: var(--btn-hover);
+    }
+    .btn.btn-danger:hover {
+      background: linear-gradient(180deg, #ef4444, #b91c1c);
+      border-color: #7f1d1d;
+    }
+
+    .muted { color: var(--muted); font-size: 12px; }
+    .footer-note { color: var(--muted); font-size: 11px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">ממלא טפסים חכם</div>
+    <div class="status">
+      <span id="statusText">מזהה טופס…</span>
+      <span id="statusBadge" class="badge">❌</span>
+    </div>
+  </div>
+
+  <!-- Create New Template -->
+  <div class="card">
+    <h2>יצירת תבנית חדשה</h2>
+    <div class="row">
+      <input id="presetNameNew" type="text" placeholder="לדוגמה: ביטוח-בריאות-חדש">
+      <button id="saveNewBtn" class="btn btn-primary">צור תבנית חדשה</button>
+    </div>
+  </div>
+
+  <!-- Manage Templates -->
+  <div class="card">
+    <h2>ניהול תבניות</h2>
+    <div class="row">
+      <select id="presets"></select>
+    </div>
+    <div class="grid-3">
+      <button id="updateBtn" class="btn">עדכן תבנית</button>
+      <button id="fillBtn" class="btn btn-primary">טען תבנית</button>
+      <button id="delBtn" class="btn btn-danger" style="display:none;">מחק תבנית</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>גיבוי</h2>
+    <div class="grid-2">
+      <button id="exportBtn" class="btn">ייצוא תבניות</button>
+      <button id="importBtn" class="btn">ייבוא תבניות</button>
+      <input id="fileInput" type="file" accept="application/json" style="display:none;">
+    </div>
+    <div class="row">
+      <!-- <div class="muted">הייצוא/ייבוא הוא עבור תבניות של ה-PDF הנוכחי בלבד.</div> -->
+    </div>
+  </div>
+
+  <div class="footer-note">v1.5 • Liad Altif</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
