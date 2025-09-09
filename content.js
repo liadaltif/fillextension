@@ -429,6 +429,7 @@
     familyId: null,
     templateId: null,
     lastLog: [],
+    pdfPresent: false,
   };
 
   // Capture baseline ASAP on content script load
@@ -472,31 +473,42 @@
   }
 
   // initial check
-  notify(hasPDF());
+  STATE.pdfPresent = hasPDF();
+  notify(STATE.pdfPresent);
 
   // observe late-injected PDF viewers
-  const mo = new MutationObserver(() => notify(hasPDF()));
-  mo.observe(document.documentElement, { childList: true, subtree: true });
-})();
+  const mo = new MutationObserver(() => {
+      const status = hasPDF();
+      if (status !== STATE.pdfPresent) {
+        STATE.pdfPresent = status;
+        notify(status);
+      }
+    });
+    mo.observe(document.documentElement, { childList: true, subtree: true });
+  })();
 
 
   // ---------- Public API via messaging ----------
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    (async () => {
-      try {
-        if (msg && msg.cmd === "PING_STATUS") {
-          const snap = snapshot();
-          sendResponse({
-            ok: true,
-            href: location.href,
-            frameName: window.name || "",
-            count: snap.count,
-            familyId: STATE.familyId || computeFamilyId(snap),
-            templateId: STATE.templateId || computeTemplateId(),
-            title: document.title || ""
-          });
-          return;
-        }
+      if (msg && msg.type === 'PING_PDF_STATUS') {
+        sendResponse({ present: STATE.pdfPresent });
+        return;
+      }
+      (async () => {
+        try {
+          if (msg && msg.cmd === "PING_STATUS") {
+            const snap = snapshot();
+            sendResponse({
+              ok: true,
+              href: location.href,
+              frameName: window.name || "",
+              count: snap.count,
+              familyId: STATE.familyId || computeFamilyId(snap),
+              templateId: STATE.templateId || computeTemplateId(),
+              title: document.title || ""
+            });
+            return;
+          }
 
         if (msg && msg.cmd === "COLLECT_INITIAL_BASELINE") {
           await waitForStableFields(600, 8000);
